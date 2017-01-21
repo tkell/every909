@@ -3,7 +3,8 @@ var sequenceApp = angular.module('sequenceApp', [])
 sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     var numTracks = 11
     var length = numTracks * 16
-    var start  = new Date("January 19, 2017 01:00:00");
+    // Don't change this one!
+    var start  = new Date("January 21, 2017 12:12:00");
     var now = new Date();
 
     now = now.getTime() / 1000
