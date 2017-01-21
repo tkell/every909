@@ -52,6 +52,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
 
     $scope.nextSample = $scope.samples[$scope.sequences.length];
 
+    var promises = 0
     // Create audio context, load audio
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     var context = new AudioContext();
@@ -59,6 +60,13 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         $http.get(url, {'responseType': 'arraybuffer'}).success(function(data) {
             context.decodeAudioData(data, function(buffer) {
                 sequence.buffer = buffer
+                promises = promises + 1
+                console.log("loaded audio", promises)
+                if (promises == 1) {
+                    transport.isPlaying = true
+                    schedulePlay(context.currentTime)
+                    console.log("playing !", promises)
+                }
             }, function() {console.log('Error Loading audio!')})
         })
     }
