@@ -1,28 +1,53 @@
 var sequenceApp = angular.module('sequenceApp', [])
 
 sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
-    x = new BigNumber(123.4567)
-    console.log(x)
+    var numTracks = 11
+    var length = numTracks * 16
+    var start  = new Date("January 19, 2017 01:00:00");
+    var now = new Date();
+
+    now = now.getTime() / 1000
+    start = start.getTime() / 1000
+    now = new BigNumber(now)
+    start = new BigNumber(start)
+    var offset = Math.floor((now - start) / 2)
+
+    var binaryString = offset.toString(2)
+    var padSize = length - binaryString.length
+    var padStr = new Array(padSize + 1).join('0');
+    binaryString = padStr + binaryString
+    var patternArray = binaryString.split('').reverse()
+    console.log(patternArray)
+    var testSeq = patternArray.slice(161, 177)
+    console.log(testSeq)
 
     // Set up samples and sequences
     $scope.samples = [
-        {'name': 'kick', 'displayChar': 'k', 'url': 'audio/kick.mp3'},
-        {'name': 'snare', 'displayChar': 's', 'url': 'audio/snare.mp3'},
-        {'name': 'hihat', 'displayChar': 'h', 'url': 'audio/hihat.mp3'},
-        {'name': 'rim', 'displayChar': 'r', 'url': 'audio/rim.wav'},
-        {'name': 'cowbell', 'displayChar':  'c', 'url': 'audio/cowbell.mp3'},
+        {'name': 'hihat', 'url': 'audio/hh.wav'},
+        {'name': 'snare', 'url': 'audio/sd.wav'},
+        {'name': 'bass', 'url': 'audio/bd.wav'},
+        {'name': 'clap', 'url': 'audio/cp.wav'},
+        {'name': 'rim', 'url': 'audio/rs.wav'},
+        {'name': 'ride', 'url': 'audio/rd.wav'},
+        {'name': 'openhat', 'url': 'audio/oh.wav'},
+        {'name': 'lowtom', 'url': 'audio/lt.wav'},
+        {'name': 'midtom', 'url': 'audio/mt.wav'},
+        {'name': 'hitom', 'url': 'audio/ht.wav'},
+        {'name': 'crash', 'url': 'audio/cr.wav'},
     ]
 
+    var getPattern = function(index, patternArray) {
+        return patternArray.slice(index * 16, (index + 1) * 16)
+    }
+    
     $scope.sequences = [
-        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null,
-        'pattern':  ['k', '-', '-', '-', 'k', '-', '-', '-', 'k', '-', '-', '-', 'k', '-', '-', '-']
-        },
-        {'sample': $scope.samples[1], 'gain': 0.7, 'buffer': null,
-        'pattern':  ['-', '-', '-', '-', 's', '-', '-', '-', '-', '-', '-', '-', 's', '-', '-', '-']
-        },
-        {'sample': $scope.samples[2], 'gain': 0.5, 'buffer': null,
-        'pattern':  ['-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-']
-        },
+        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': getPattern(0, patternArray)},
+        // {'sample': $scope.samples[1], 'gain': 0.7, 'buffer': null,
+        // 'pattern':  ['-', '-', '-', '-', 's', '-', '-', '-', '-', '-', '-', '-', 's', '-', '-', '-']
+        // },
+        // {'sample': $scope.samples[2], 'gain': 0.5, 'buffer': null,
+        // 'pattern':  ['-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-']
+        // },
     ]
 
     $scope.nextSample = $scope.samples[$scope.sequences.length];
@@ -57,14 +82,6 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     }
     
     // Public $scope methods
-    $scope.toggleBeat = function(sequence, index) {
-        var letter = sequence.sample.displayChar
-        if (sequence.pattern[index] == '-') {
-            sequence.pattern[index] = letter
-        } else {
-            sequence.pattern[index] = '-'
-        }
-    }
 
     $scope.updateTempo = function(e) {
         if (e.keyCode == 13) {
@@ -144,7 +161,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         while (nextNoteTime < context.currentTime + transport.lookAhead) {
             for (var i = 0; i < $scope.sequences.length; i++) {
                 var seq = $scope.sequences[i]
-                if (seq.pattern[transport.currentIndex] != '-') {
+                if (seq.pattern[transport.currentIndex] != '0') {
                     playSound(nextNoteTime, seq.buffer, seq.gain)
                 } else if (transport.currentIndex == 0 && transport.numLoops == 0) {
                     // Bootstrap the start:
