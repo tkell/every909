@@ -12,14 +12,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     start = new BigNumber(start)
     var offset = Math.floor((now - start) / 2)
 
-    var binaryString = offset.toString(2)
-    var padSize = length - binaryString.length
-    var padStr = new Array(padSize + 1).join('0');
-    binaryString = padStr + binaryString
-    var patternArray = binaryString.split('').reverse()
-    console.log(patternArray)
-    var testSeq = patternArray.slice(161, 177)
-    console.log(testSeq)
+
 
     // Set up samples and sequences
     $scope.samples = [
@@ -41,7 +34,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     }
     
     $scope.sequences = [
-        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': getPattern(0, patternArray)},
+        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': null},
         // {'sample': $scope.samples[1], 'gain': 0.7, 'buffer': null,
         // 'pattern':  ['-', '-', '-', '-', 's', '-', '-', '-', '-', '-', '-', '-', 's', '-', '-', '-']
         // },
@@ -50,7 +43,20 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         // },
     ]
 
-    $scope.nextSample = $scope.samples[$scope.sequences.length];
+    var numToPattern = function(num) {
+        var binaryString = num.toString(2)
+        var padSize = length - binaryString.length
+        var padStr = new Array(padSize + 1).join('0')
+
+        binaryString = padStr + binaryString
+        var patternArray = binaryString.split('').reverse()
+        console.log(patternArray)
+        $scope.sequences[0].pattern = getPattern(0, patternArray)
+    }
+
+    // load it!
+    numToPattern(offset);
+
 
     var promises = 0
     // Create audio context, load audio
@@ -131,6 +137,9 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
             transport.loopCounter++
             if (transport.loopCounter == 16) {
                 transport.numLoops++
+                // re-generate the pattern!
+                offset = offset + 1
+                numToPattern(offset);
                 transport.loopCounter = 0
             }
 
