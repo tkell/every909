@@ -12,14 +12,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     start = new BigNumber(start)
     var offset = Math.floor((now - start) / 2)
 
-    var binaryString = offset.toString(2)
-    var padSize = length - binaryString.length
-    var padStr = new Array(padSize + 1).join('0');
-    binaryString = padStr + binaryString
-    var patternArray = binaryString.split('').reverse()
-    console.log(patternArray)
-    var testSeq = patternArray.slice(161, 177)
-    console.log(testSeq)
+
 
     // Set up samples and sequences
     $scope.samples = [
@@ -41,7 +34,7 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     }
     
     $scope.sequences = [
-        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': getPattern(0, patternArray)},
+        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': null},
         // {'sample': $scope.samples[1], 'gain': 0.7, 'buffer': null,
         // 'pattern':  ['-', '-', '-', '-', 's', '-', '-', '-', '-', '-', '-', '-', 's', '-', '-', '-']
         // },
@@ -50,8 +43,22 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         // },
     ]
 
-    $scope.nextSample = $scope.samples[$scope.sequences.length];
+    var numToPattern = function(num) {
+        var binaryString = num.toString(2)
+        var padSize = length - binaryString.length
+        var padStr = new Array(padSize + 1).join('0')
 
+        binaryString = padStr + binaryString
+        var patternArray = binaryString.split('').reverse()
+        console.log(patternArray)
+        $scope.sequences[0].pattern = getPattern(0, patternArray)
+    }
+
+    // load it!
+    numToPattern(offset);
+
+
+    var promises = 0
     // Create audio context, load audio
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     var context = new AudioContext();
@@ -59,6 +66,13 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         $http.get(url, {'responseType': 'arraybuffer'}).success(function(data) {
             context.decodeAudioData(data, function(buffer) {
                 sequence.buffer = buffer
+                promises = promises + 1
+                console.log("loaded audio", promises)
+                if (promises == 1) {
+                    transport.isPlaying = true
+                    schedulePlay(context.currentTime)
+                    console.log("playing !", promises)
+                }
             }, function() {console.log('Error Loading audio!')})
         })
     }
@@ -80,38 +94,6 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         'lookAhead': 0.1, // seconds
         'scheduleInterval': 30, // milliseconds
     }
-    
-    // Public $scope methods
-
-    $scope.updateTempo = function(e) {
-        if (e.keyCode == 13) {
-            var inputTempo = parseInt(e.currentTarget.value)
-            var wasPlaying = transport.isPlaying
-            if (inputTempo > 0 && inputTempo < 1000) {
-                $scope.stop()
-                transport.tempo = inputTempo
-                // If we wait for a bit here, we don't get the EXPLOSION.
-                // Not ideal, but I am out of time.
-                if (wasPlaying == true) {
-                    $timeout(function() {
-                       $scope.start()
-                    }, 50)
-                }
-            } else {
-                console.log('Error:  Tempo value out of range')
-            }           
-        }
-    }
-
-    $scope.start = function() {
-        transport.isPlaying = true
-        schedulePlay(context.currentTime)
-    }
-
-    $scope.stop = function() {
-        transport.isPlaying = false
-        transport.numLoops = 0
-    }
 
     $scope.checkIndex = function(index) {
         if (transport.visualIndex == index) {
@@ -119,26 +101,6 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         } else {
             return false
         }
-    }
-
-    $scope.addTrack = function() {
-        if ($scope.nextSample == null) {
-            return
-        }
-        var newSequence = {
-            'sample': $scope.nextSample,
-            'gain': 0.7, 
-            'buffer': null,
-            'pattern':  ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-']
-        }   
-
-        $scope.sequences.push(newSequence)
-        loadAudio(newSequence.sample.url, newSequence)
-    }
-
-    $scope.removeTrack = function(sequence) {
-        var index = $scope.sequences.indexOf(sequence)
-        $scope.sequences.splice(index, 1)
     }
 
     // Private functions for playback
@@ -183,6 +145,9 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
             transport.loopCounter++
             if (transport.loopCounter == 16) {
                 transport.numLoops++
+                // re-generate the pattern!
+                offset = offset + 1
+                numToPattern(offset);
                 transport.loopCounter = 0
             }
 
