@@ -12,8 +12,6 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
     start = new BigNumber(start)
     var offset = Math.floor((now - start) / 2)
 
-
-
     // Set up samples and sequences
     $scope.samples = [
         {'name': 'hihat', 'url': 'audio/hh.wav'},
@@ -28,20 +26,24 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         {'name': 'hitom', 'url': 'audio/ht.wav'},
         {'name': 'crash', 'url': 'audio/cr.wav'},
     ]
+    
+    $scope.sequences = [
+        {'sample': $scope.samples[0], 'gain': 0.7, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[1], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[2], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[3], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[4], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[5], 'gain': 0.7, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[6], 'gain': 0.7, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[7], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[8], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[9], 'gain': 1.0, 'buffer': null, 'pattern': null},
+        {'sample': $scope.samples[10], 'gain': 0.7, 'buffer': null, 'pattern': null},
+    ]
 
     var getPattern = function(index, patternArray) {
         return patternArray.slice(index * 16, (index + 1) * 16)
     }
-    
-    $scope.sequences = [
-        {'sample': $scope.samples[0], 'gain': 1.0, 'buffer': null, 'pattern': null},
-        // {'sample': $scope.samples[1], 'gain': 0.7, 'buffer': null,
-        // 'pattern':  ['-', '-', '-', '-', 's', '-', '-', '-', '-', '-', '-', '-', 's', '-', '-', '-']
-        // },
-        // {'sample': $scope.samples[2], 'gain': 0.5, 'buffer': null,
-        // 'pattern':  ['-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-', '-', '-', 'h', '-']
-        // },
-    ]
 
     var numToPattern = function(num) {
         var binaryString = num.toString(2)
@@ -50,11 +52,13 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
 
         binaryString = padStr + binaryString
         var patternArray = binaryString.split('').reverse()
-        console.log(patternArray)
-        $scope.sequences[0].pattern = getPattern(0, patternArray)
+
+        for (var i = 0; i < $scope.sequences.length; i++) {
+            $scope.sequences[i].pattern = getPattern(i, patternArray)
+        }
     }
 
-    // load it!
+    // load it the first time!
     numToPattern(offset);
 
 
@@ -67,11 +71,10 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
             context.decodeAudioData(data, function(buffer) {
                 sequence.buffer = buffer
                 promises = promises + 1
-                console.log("loaded audio", promises)
-                if (promises == 1) {
+                // Hack to avoid throwing capital P promises around
+                if (promises == $scope.sequences.length) {
                     transport.isPlaying = true
                     schedulePlay(context.currentTime)
-                    console.log("playing !", promises)
                 }
             }, function() {console.log('Error Loading audio!')})
         })
