@@ -1,6 +1,8 @@
 var sequenceApp = angular.module('sequenceApp', [])
 
 sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
+    x = new BigNumber(123.4567)
+    console.log(x)
 
     // Set up samples and sequences
     $scope.samples = [
