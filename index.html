@@ -12,7 +12,7 @@
         <ul class="track-list">
             <li ng-repeat="sequence in sequences">
                 <span class="sequence" ng-repeat="beat in sequence.pattern track by $index">
-                    <span class="beat" ng-class="{playing: checkIndex($index)}" ng-click="toggleBeat(sequence, $index)">{{beat}}</span>
+                    <span class="beat" ng-class="{playing: checkIndex($index)}">{{beat}}</span>
                 </span>
             </li>
         </ul>

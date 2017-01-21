@@ -95,6 +95,14 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         'scheduleInterval': 30, // milliseconds
     }
 
+    $scope.checkIndex = function(index) {
+        if (transport.visualIndex == index) {
+            return true
+        } else {
+            return false
+        }
+    }
+
     // Private functions for playback
     function getNextNoteTime(startTime, sixteenthNote) {
         var loopOffset = transport.numLoops * (240.0 / transport.tempo)
