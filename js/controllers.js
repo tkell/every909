@@ -88,66 +88,6 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         'lookAhead': 0.1, // seconds
         'scheduleInterval': 30, // milliseconds
     }
-    
-    // Public $scope methods
-
-    $scope.updateTempo = function(e) {
-        if (e.keyCode == 13) {
-            var inputTempo = parseInt(e.currentTarget.value)
-            var wasPlaying = transport.isPlaying
-            if (inputTempo > 0 && inputTempo < 1000) {
-                $scope.stop()
-                transport.tempo = inputTempo
-                // If we wait for a bit here, we don't get the EXPLOSION.
-                // Not ideal, but I am out of time.
-                if (wasPlaying == true) {
-                    $timeout(function() {
-                       $scope.start()
-                    }, 50)
-                }
-            } else {
-                console.log('Error:  Tempo value out of range')
-            }           
-        }
-    }
-
-    $scope.start = function() {
-        transport.isPlaying = true
-        schedulePlay(context.currentTime)
-    }
-
-    $scope.stop = function() {
-        transport.isPlaying = false
-        transport.numLoops = 0
-    }
-
-    $scope.checkIndex = function(index) {
-        if (transport.visualIndex == index) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    $scope.addTrack = function() {
-        if ($scope.nextSample == null) {
-            return
-        }
-        var newSequence = {
-            'sample': $scope.nextSample,
-            'gain': 0.7, 
-            'buffer': null,
-            'pattern':  ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-']
-        }   
-
-        $scope.sequences.push(newSequence)
-        loadAudio(newSequence.sample.url, newSequence)
-    }
-
-    $scope.removeTrack = function(sequence) {
-        var index = $scope.sequences.indexOf(sequence)
-        $scope.sequences.splice(index, 1)
-    }
 
     // Private functions for playback
     function getNextNoteTime(startTime, sixteenthNote) {

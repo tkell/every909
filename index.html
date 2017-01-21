@@ -9,9 +9,6 @@
 <body>
     <h1>every 909</h1>
     <div class="sequencer" ng-controller="SequencerControl">
-        <div class="controls">
-                <span class="start-button" ng-click="start()">start</span> |
-        </div>
         <ul class="track-list">
             <li ng-repeat="sequence in sequences">
                 <span class="sequence" ng-repeat="beat in sequence.pattern track by $index">
