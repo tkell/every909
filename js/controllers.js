@@ -178,17 +178,17 @@ sequenceApp.controller('SequencerControl', function ($scope, $http, $timeout) {
         return source
     }
 
+    // Autoplay business
     window.addEventListener('touchstart', function() {
-        // create empty buffer
-        var buffer = context.createBuffer(1, 1, 22050);
-        var source = context.createBufferSource();
-        source.buffer = buffer;
+        context.resume();
+    }, false);
 
-        // connect to output (your speakers)
-        source.connect(context.destination);
+    window.addEventListener('keyup', function() {
+        context.resume();
+    }, false);
 
-        // play the file
-        source.noteOn(0);
+    window.addEventListener('click', function() {
+        context.resume();
     }, false);
 
 })
